@@ -1,0 +1,35 @@
+name: Build Android APK
+
+on:
+workflow_dispatch:
+push:
+paths:
+- 'AutoGalleryMan.zip'
+
+jobs:
+build:
+runs-on: ubuntu-latest
+steps:
+- uses: actions/checkout@v4
+- uses: actions/setup-java@v4
+with:
+distribution: temurin
+java-version: '17'
+- uses: android-actions/setup-android@v3
+- name: Extract project
+run: |
+unzip -o AutoGalleryMan.zip -d project
+find project -name gradlew -exec chmod +x {} ;
+- name: Build APK
+run: |
+cd project
+if [ -f gradlew ]; then
+./gradlew assembleDebug
+else
+cd "$(find . -name gradlew -printf '%h\n' | head -1)"
+./gradlew assembleDebug
+fi
+- uses: actions/upload-artifact@v4
+with:
+name: AutoGalleryMan-APK
+path: project/**/build/outputs/apk/debug/*.apk
